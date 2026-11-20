@@ -372,7 +372,9 @@ describe('library move', { concurrency: 1 }, () => {
     assert.ok(steps.some((step) => String(step.to).includes('.alacarte-move')))
     for (const step of steps) assert.equal(await __test__.applyStep(step), 'done')
     assert.equal(await fsp.readFile(path.join(music, 'Artist/album/01. a.flac'), 'utf8'), 'audio')
-    await assert.rejects(fsp.stat(path.join(music, 'Artist/Album')))
+    // Looking up the old spelling still succeeds on a case-insensitive volume.
+    // Inspect the directory entry to verify that the stored spelling changed.
+    assert.deepEqual(await fsp.readdir(path.join(music, 'Artist')), ['album'])
 
     await put('Artist/album/keep.flac', 'keep')
     const result = await __test__.applyStep({ op: 'rename', from: 'Artist/album/01. a.flac', to: 'Artist/album/keep.flac' })

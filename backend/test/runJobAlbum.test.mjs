@@ -167,7 +167,7 @@ test('an album already on disk stays in its folder when the scheme changes', asy
     await writeSettings({ pathTemplate: '$artist/$album ($year)/$track. $title' })
     const job = await runAlbumJob({ year: '2013' })
     assert.equal(job.status, 'done', job.error)
-    assert.equal(job.finalDir, existing)
+    assert.equal(await fsp.realpath(job.finalDir), await fsp.realpath(existing))
     const files = await fsp.readdir(existing)
     assert.equal(await fsp.readFile(path.join(existing, '00. Keep.flac'), 'utf8'), 'keep')
     assert.ok(files.includes('01. Song (feat. Guest).flac'))
@@ -194,7 +194,7 @@ test('the primary artist is the folder only when that album is not already filed
     await fsp.writeFile(path.join(existing, '00. Keep.flac'), 'keep')
     const again = await runAlbumJob({ artist: 'Anyma & Joji', folderArtist: 'Anyma' })
     assert.equal(again.status, 'done', again.error)
-    assert.equal(again.finalDir, existing)
+    assert.equal(await fsp.realpath(again.finalDir), await fsp.realpath(existing))
     assert.equal(await fsp.readFile(path.join(existing, '00. Keep.flac'), 'utf8'), 'keep')
     assert.equal(await fsp.stat(path.join(tmpMusic, 'Anyma')).catch(() => null), null)
   } finally {
@@ -252,7 +252,7 @@ async function fillIntoExisting(existingNames, pathTemplate) {
     ],
   })
   assert.equal(job.status, 'done', job.error)
-  assert.equal(job.finalDir, existing)
+  assert.equal(await fsp.realpath(job.finalDir), await fsp.realpath(existing))
   return (await fsp.readdir(existing)).filter((f) => f.endsWith('.flac')).sort()
 }
 
